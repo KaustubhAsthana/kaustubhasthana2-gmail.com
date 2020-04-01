@@ -5,11 +5,13 @@ public class Ip{
 public static void main(String []args){
 	Random random=new Random();
 	int i,sum=0;
+	String s="";
 	int []l=new int[4];
 	for(i=0;i<4;i++){//since we need to generate a 4 digit OTP
 		l[i]=random.nextInt(10);
-	    sum=sum*10+l[i];
-	}
-	System.out.println("OTP generated: "+sum);
+	    	sum=sum*10+l[i];
+	    	s=s+Integer.toString(l[i]);
+		}
+	System.out.println("OTP generated: "+s);
 	}
 }
