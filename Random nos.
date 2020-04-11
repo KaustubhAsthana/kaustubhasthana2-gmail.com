@@ -3,15 +3,34 @@ import java.io.*;
 import java.util.*;
 public class Ip{
 public static void main(String []args){
+	Scanner t=new Scanner(System.in);
 	Random random=new Random();
-	int i,sum=0;
-	String s="";
+	int i,count=0,k;
+	String s="",s1="";
 	int []l=new int[4];
+	int []l1=new int[4];
 	for(i=0;i<4;i++){//since we need to generate a 4 digit OTP
 		l[i]=random.nextInt(10);
-	    	sum=sum*10+l[i];
 	    	s=s+Integer.toString(l[i]);
 		}
 	System.out.println("OTP generated: "+s);
+	System.out.println("Kindly enter the OTP as received by the patient");//user entered OTP
+	s1=t.next();
+	int m=s1.length();
+	if(m==4){
+		for(i=0;i<4;i++){
+			k=Integer.parseInt(String.valueOf(s1.charAt(i)));
+			if(k==l[i]){
+				count++;
+			}
+		}
+		if(count==4){
+			System.out.println("Access granted");
+		}else{
+			System.out.println("Access denied OTP entered does not match");
+		}
+	}else{
+		System.out.println("Access denied you need to enter proper credentials");
+		}
 	}
 }
