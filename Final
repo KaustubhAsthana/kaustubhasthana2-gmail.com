@@ -1,0 +1,361 @@
+package PlainTextEmailSender;
+import java.util.*;
+//import java.io.*;
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import com.mysql.jdbc.PreparedStatement;
+import com.mysql.jdbc.Statement;
+public class PlainTextEmailSender {
+	private static final String USERNAME="Db user name";
+	private static final String PASSWORD="Db password";
+	private static final String CONN="jdbc:mysql://localhost/sql1";//link for the connectivity
+	
+    public void sendPlainTextEmail(String host, String port,
+            final String userName, final String password, String toAddress,
+            String subject, String message) throws AddressException,
+            MessagingException {
+ 
+        // sets SMTP server properties
+        Properties properties = new Properties();
+        properties.put("mail.smtp.host", host);
+        properties.put("mail.smtp.port", port);
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.starttls.enable", "true");
+ 
+        // creates a new session with an authenticator
+        Authenticator auth = new Authenticator() {
+            public PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(userName, password);
+            }
+        };
+ 
+        Session session = Session.getInstance(properties, auth);
+ 
+        // creates a new e-mail message
+        Message msg = new MimeMessage(session);
+ 
+        msg.setFrom(new InternetAddress(userName));
+        InternetAddress[] toAddresses = { new InternetAddress(toAddress) };
+        msg.setRecipients(Message.RecipientType.TO, toAddresses);
+        msg.setSubject(subject);
+        msg.setSentDate(new Date());
+        // set plain text message
+        msg.setText(message);
+ 
+        // sends the e-mail
+        Transport.send(msg);
+ 
+    }
+ 
+    public static void main(String[] args) throws SQLException {
+        // SMTP server information
+    	Scanner t=new Scanner(System.in);
+    	Random random=new Random();
+    	int i=0,sum=0,count=0,k,b=0;
+    	String s="",s1="",s2="Welcome to the organization your OTP is as follows: ",ids1="",ids="";//ids1 variable for storing the ids of doc or nurse
+    	int []l=new int[4];
+    	int choice,countnext,choicedec=2;//this variable will store the first line input i.e. line 70 ke inputs
+    	//countnext variable is responsible for checking whether the id entered is valid or not
+    	//choicedec is responsible for the tasks that can be performed by each of the actors responsible
+    	String mail="",did="",named="",no="",dept="";
+    	System.out.println("Kindly follow the instructions given below:");
+    	do {
+    	System.out.println("Enter 1 if you are a doctor, 2 if you are a nurse and 3 if you are a patient");
+    	choice=Integer.parseInt(t.nextLine());//this will determine the query that we will be executing from now onwards
+    	}while(choice!=1 && choice!=2 && choice!=3);
+    	//System.out.println("The value of choice is: "+choice);
+    	
+    	//System.out.println("Enter the ID of the doctor that wants to view the patient profile");
+		//String ids1=t.next();The ids1 variable will be responsible for storing the value of the id of the doctor or nurse
+    	//The ids variable needs to be executed each and every time coz patient ko bhi id enter krni hain and doctor aur nurse bhi id enter krenge
+    	for(i=0;i<4;i++) {
+    		l[i]=random.nextInt(10);
+    		sum=sum*10+l[i];
+    		s=s+Integer.toString(l[i]);
+    	}
+    	Connection con=null;//opening the connection
+		Statement stat=null;//class set 
+		ResultSet rs=null;
+		try {
+			con=DriverManager.getConnection(CONN, USERNAME, PASSWORD);
+			stat=(Statement) con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+			if(choice==1) {
+				do {
+	    		System.out.println("Enter the ID of the doctor that wants to view the patient profile");
+	    		ids1=t.next();
+	    		rs=stat.executeQuery("SELECT COUNT(DoctorID)FROM doctor WHERE DoctorID = '"+ids1+"'");
+				rs.next();
+		    	countnext = rs.getInt(1);
+			}while(countnext!=1);
+	    	}else if(choice==2) {
+	    		do {
+	    		System.out.println("Enter the ID of the nurse that wants to view the patient profile");
+	    		ids1=t.next();
+	    		rs=stat.executeQuery("SELECT COUNT(NurseID)FROM nurse WHERE NurseID = '"+ids1+"'");
+				rs.next();
+		    	countnext = rs.getInt(1);
+	    		}while(countnext!=1);
+	    	}
+			if(choice!=2) {
+			do {
+	    	System.out.println("Enter the ID of the patient whose profile needs to be viewed");
+	    	ids=t.next();//taking the ID of the patient whose data we want to access
+			rs=stat.executeQuery("SELECT COUNT(PatientID)FROM patient WHERE PatientID = '"+ids+"'");
+			rs.next();
+	    	countnext = rs.getInt(1);
+			}while(countnext!=1);
+		}
+			//we will now be executing the queries so as to check whether the entries provided are valid or not
+		    //before this we need to verify whether the details entered are correct or not
+			//line after this prints the details of the doctor/nurse that is viewing the profile
+		    if(choice==1) {
+			rs=stat.executeQuery("SELECT * FROM doctor where DoctorID='"+ids1+"'");//printing the details that will be done after verification
+			if(rs.next()) {
+				did  = rs.getString(1);
+		        named = rs.getString(2);
+		        dept= rs.getString(3);
+		        no = rs.getString(4);
+		         
+		         //Display values
+			
+		         System.out.print("ID: " + did);
+		         System.out.print(", Name:  " + named);
+		         System.out.print(", Department: " + dept);
+		         System.out.println(", Contact info: " + no);
+				}
+		    }
+		    if(choice==2) {
+				rs=stat.executeQuery("SELECT * FROM nurse where NurseID='"+ids1+"'");//printing the details that will be done after verification
+				if(rs.next()) {
+					did  = rs.getString(1);
+			        named = rs.getString(2);
+			        dept= rs.getString(3);
+			         
+			         //Display values
+				
+			         System.out.print("ID: " + did);
+			         System.out.print(", Name:  " + named);
+			         System.out.println(", Desk No.: " + dept);
+					}
+				do {
+					System.out.println("Enter 1 for adding patients and 2 for continuing to view the patients");
+					choicedec=Integer.parseInt(t.next());
+	        		if(choicedec==1) {
+	        			String d="",nam="",cap="",mal="";
+	        			System.out.println("Enter the Name, mail ID and Medicine of the patient");
+	        			rs=stat.executeQuery("SELECT COUNT(*) from patient");
+	        			if (rs.next())
+	        			      b = rs.getInt(1);
+	        			d="P00"+Integer.toString(b+1);
+	        			if(b>99) {
+	        				d="P0"+Integer.toString(b+1);
+	        			}
+	        			nam=t.next();
+	        			mal=t.next();
+	        			cap=t.next();
+	        			String sql="Insert into patient set PatientID = ?, Name=?,Mail=?,Medicine = ?";
+	        			try {
+	        			java.sql.PreparedStatement preparedStmt = con.prepareStatement(sql);
+	        			preparedStmt.setString(1, d);
+	        			preparedStmt.setString(2, nam);
+	        			preparedStmt.setString(3, mal);
+	        			preparedStmt.setString(4, cap);
+	        			preparedStmt.executeUpdate();
+	        			System.out.println("The id of the new patient is: "+d);
+	        			}catch(Exception stream) {
+	        				System.out.println(stream);
+	        			}
+	        		}
+				}while(choicedec!=2);
+			    }//function for adding new values to the database
+		    if(choicedec==2 && choice==2) {
+				   do {
+				    	System.out.println("Enter the ID of the patient whose profile needs to be viewed");
+				    	ids=t.next();//taking the ID of the patient whose data we want to access
+						rs=stat.executeQuery("SELECT COUNT(PatientID)FROM patient WHERE PatientID = '"+ids+"'");
+						rs.next();
+				    	countnext = rs.getInt(1);
+						}while(countnext!=1);
+			   }
+				
+		    
+			rs=stat.executeQuery("SELECT * FROM patient where PatientID='"+ids+"'");
+			//while(rs.next()){
+		         //Retrieve by column name
+		        
+			if(rs.next()) {
+				String id  = rs.getString(1);
+		         String name = rs.getString(2);
+		         mail = rs.getString(3);
+		         String last = rs.getString(4);
+		         
+		         //Display values
+			
+		         //System.out.print("ID: " + id);
+		         //System.out.print(", Name:  " + name);
+		         //System.out.print(", Mail: " + mail);
+		         //System.out.println(", Medicine: " + last);
+				}
+		   
+		   //System.out.println("louis tomo" + mail);
+		         //}
+		    //this is where the mail code is being copied
+			String host = "smtp.gmail.com";
+	        String port = "587";
+	        String mailFrom = "Mail Id";
+	        String password = "Password";
+	 
+	        // outgoing message information
+	        String mailTo=mail;
+	        String subject = "OTP for login";
+	        //changing the format of the message depending on who is logging in
+	        String message="";
+	        if(choice==1) {
+	        	message = (s2.concat(s)+" The name of the doctor is: "+ named +" and his/her ID is: "+did);
+	        }
+	        if(choice==2) {
+	        	message = (s2.concat(s)+" The name of the nurse is: "+ named +" and his/her ID is: "+did);
+	        }
+	        if(choice==3) {
+	        	message = (s2.concat(s));
+	        }
+	        System.out.println();
+	        
+	        PlainTextEmailSender mailer = new PlainTextEmailSender();
+	        
+	        try {
+	            mailer.sendPlainTextEmail(host, port, mailFrom, password, mailTo,
+	                    subject, message);
+	            System.out.println("Email sent.");
+	        } catch (Exception ex) {
+	            System.out.println("Failed to sent email.");
+	            ex.printStackTrace();
+	        }
+	        System.out.println("OTP has been sent to your registered Mail ID kindly check your mail");
+	        System.out.println("OTP: ");
+	        s1=t.next();
+	        int m=s1.length();
+	        if(m==4) {
+	        	for(i=0;i<4;i++) {
+	        		k=Integer.parseInt(String.valueOf(s1.charAt(i)));
+	        		if(k==l[i]) {
+	        			count++;
+	        		}
+	        	}
+	        	if(count==4) {
+	        		System.out.println("Access Granted");
+	        		//System.out.println("louis tommo "+did);
+	        		//need to provide access to the various functions that can be performed based on the position of the person
+	        		if(choice==1) {
+	        		System.out.println("As doctor you have the following priviliges: ");
+	        		do {
+	        		System.out.println("Enter 1. For editing the information of the patient 2. For viewing the current profile 3. for exit");
+	        		choicedec=Integer.parseInt(t.next());
+	        		if(choicedec==1) {
+	        			System.out.println("Enter the name of the new medicine");
+	        			String med=t.next();
+	        			String sql="update patient set Medicine = ? where PatientID = ?";
+	        			java.sql.PreparedStatement preparedStmt = con.prepareStatement(sql);
+	        			preparedStmt.setString(1, med);
+	        			preparedStmt.setString(2, ids);
+	        			preparedStmt.executeUpdate();
+	        		}else if(choicedec==2) {
+	        			rs=stat.executeQuery("SELECT * FROM patient where PatientID='"+ids+"'");
+	        			//while(rs.next()){
+	        		         //Retrieve by column name
+	        		        
+	        			if(rs.next()) {
+	        				String id  = rs.getString(1);
+	        		         String name = rs.getString(2);
+	        		         mail = rs.getString(3);
+	        		         String last = rs.getString(4);
+	        		         
+	        		         //Display values
+	        			
+	        		         System.out.print("ID: " + id);
+	        		         System.out.print(", Name:  " + name);
+	        		         System.out.print(", Mail: " + mail);
+	        		         System.out.println(", Medicine: " + last);
+	        			}
+	        		}
+	        	}while(choicedec!=3);
+	        }//end of the options available for doctor
+	        if(choice==2) {
+	        	System.out.println("As nurse you have the following priviliges: ");
+        		do {
+        		System.out.println("Enter 1.For viewing the current profile 2. for exit");
+        		choicedec=Integer.parseInt(t.next());
+        		 if(choicedec==1) {
+        			rs=stat.executeQuery("SELECT * FROM patient where PatientID='"+ids+"'");
+        			//while(rs.next()){
+        		         //Retrieve by column name
+        		        
+        			if(rs.next()) {
+        				String id  = rs.getString(1);
+        		         String name = rs.getString(2);
+        		         mail = rs.getString(3);
+        		         String last = rs.getString(4);
+        		         
+        		         //Display values
+        			
+        		         System.out.print("ID: " + id);
+        		         System.out.print(", Name:  " + name);
+        		         System.out.print(", Mail: " + mail);
+        		         System.out.println(", Medicine: " + last);
+        			}
+        		}
+        	}while(choicedec!=2);
+	       }//end of options available for nurse
+	       if(choice==3) {
+	    	   rs=stat.executeQuery("SELECT * FROM patient where PatientID='"+ids+"'");
+   			//while(rs.next()){
+   		         //Retrieve by column name
+   		        
+   			if(rs.next()) {
+   				String id  = rs.getString(1);
+   		         String name = rs.getString(2);
+   		         mail = rs.getString(3);
+   		         String last = rs.getString(4);
+   		         
+   		         //Display values
+   			
+   		         System.out.print("ID: " + id);
+   		         System.out.print(", Name:  " + name);
+   		         System.out.print(", Mail: " + mail);
+   		         System.out.println(", Medicine: " + last);
+   			}
+	       }//end of priviliges being offered to patients and relatives
+	      }//end of if(choice==4) condition
+	        else {
+	        	System.out.println("Access denied OTP entered does not match");
+	        }
+	     }else {
+	    	 System.out.println("Access denied kindly enter the correct OTP");
+	     }//last line in case of any OTP errors	
+		System.out.println("Thanks for using the system");
+		}catch(SQLException e) {
+			System.out.print(e);
+		}
+		finally {
+			if(rs != null) {
+				rs.close();//closing the connection
+			}if(stat != null) {
+				stat.close();
+			}if(con != null) {
+				con.close();
+			}
+		}
+        
+    }//end of main class
+}
